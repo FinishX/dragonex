@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -113,34 +114,27 @@ public class UserTokenInterceptor implements HandlerInterceptor {
 	public static void main(String [] args){
 		HttpClient httpClient = new DefaultHttpClient();
         HttpPost httpPost = new HttpPost("https://openapi.dragonex.im/api/v1/token/new/");
-        
         httpPost.setHeader("Content-Type","application/json");
-        
-        httpPost.setHeader("auth", "ThisIsAccessKey:b0e873cd55f5539aab82e97a3ef28cd2");
-//		response.setHeader("date", new Date());
-//      //设置基础时间为格林威治时间
-//        TimeZone gmtTz = TimeZone.getTimeZone("GMT");
-////        设置目标时间为中国标准时
-//        TimeZone desTz = TimeZone.getTimeZone("Asia/Shanghai");
-//        GregorianCalendar rightNow = new GregorianCalendar(gmtTz);
-//        Date mydate=rightNow.getTime();
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'",Locale.ENGLISH);//MMM dd hh:mm:ss Z yyyy
-//		String date = dateFormat.format(DateTime.now(DateTimeZone.UTC));
-//        DateTime.now(DateTimeZone.UTC);
-//        DateTime
-//        System.out.println(TimeZone.getTimeZone("GMT"));
-//        DateTime d = DateTime.now(DateTimeZone.UTC);
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT00:00"));
-//        System.out.println(dateFormat.format(new Date()));
-		httpPost.setHeader("date", dateFormat.format(new Date()));
-//		httpPost.setURI("https://openapi.dragonex.io/api/v1/token/new/");
-		
-		
+        String date = dateFormat.format(new Date());
+		httpPost.setHeader("date", date);
 		String entityStr = null;
 		HttpResponse httpResponse;
+		
+		StringBuffer sb = new StringBuffer();
+		sb.append("POST\n");
+//		sb.append("123abc\n");
+		sb.append("application/json\n");
+//		sb.append("dragonex-atruth:dragonexisthebest\n");
+//		sb.append("dragonex-btruth:dragonexisthebest2\n");
+		sb.append(date+"\n");
+		sb.append("/api/v1/token/new/");
 		try {
-//			String values = encrypt(sb.toString(), "b0e873cd55f5539aab82e97a3ef28cd2");
-//			httpPost.setHeader("auth", "ThisIsAccessKey:"+values);
+			System.out.println(sb.toString());
+//			String values = encrypt(sb.toString(), "c104adfc7e1b5e5e99c7c307ad65524e");
+			String values = encrypt(sb.toString().getBytes(), "c104adfc7e1b5e5e99c7c307ad65524e");
+			 httpPost.setHeader("auth", "853383797d695e67bfcd768e0706e323:"+values);
 			httpResponse = httpClient.execute(httpPost);
 			HttpEntity entity = httpResponse.getEntity();
 	        entityStr = EntityUtils.toString(entity);
@@ -165,6 +159,35 @@ public class UserTokenInterceptor implements HandlerInterceptor {
         return strs;
     }
     
+    
+    /** 
+     * 加密 
+     * 
+     * @param datasource byte[] 
+     * @param password   String 
+     * @return byte[] 
+     */  
+    public static String encrypt(byte[] datasource, String password) {  
+		try {  
+		    SecureRandom random = new SecureRandom();  
+			DESKeySpec desKey = new DESKeySpec(password.getBytes());  
+			//创建一个密匙工厂，然后用它把DESKeySpec转换成  
+			SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");  
+			SecretKey securekey = keyFactory.generateSecret(desKey);  
+			//Cipher对象实际完成加密操作  
+			Cipher cipher = Cipher.getInstance("DES");  
+			//用密匙初始化Cipher对象,Cipher.ENCRYPT_MODE代表编码模式  
+			cipher.init(Cipher.ENCRYPT_MODE, securekey, random);  
+			//现在，获取数据并加密  
+			            //正式执行加密操作  
+//			return cipher.doFinal(datasource);  
+			 System.out.println(new String(cipher.doFinal(datasource),"UTF-8"));
+			return new BASE64Encoder().encode(cipher.doFinal(datasource));
+			} catch (Throwable e) {  
+			            e.printStackTrace();  
+			}  
+			return null;  
+			}  
     
     /**
      * Description 根据键值进行加密
