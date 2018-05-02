@@ -8,21 +8,16 @@
 */
 package com.example.demo.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -97,6 +92,39 @@ public class CoinController {
 	}
 	
 	
+	//获取交易对ID的当前价格
+	@RequestMapping("coinAll")
+	@ResponseBody
+		public List<Map<String, Object>> coinAll(){
+			JSONObject object = new JSONObject();
+//			object.put("symbol_id", symbolId);
+			List<Map<String, Object>> returnMap = new ArrayList<Map<String, Object>>();
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					String marketReal = HttpUtils.receiveGet(HostConstant.MAIN_HOST, HostConstant.GET_COIN_ALL,object);
+//					JSONObject marketJson = JSONObject.parseObject(marketReal);
+//					String price = marketJson.getString("close_price");
+					JSONObject marketJson = JSONObject.parseObject(marketReal);
+					String dataJson = marketJson.getString("data");
+					JSONArray jsonArray = JSONArray.parseArray(dataJson);
+					for(int i=0;i<jsonArray.size();i++){
+						JSONObject job = jsonArray.getJSONObject(i);
+						Map<String, Object> map = new HashMap<String, Object>();
+						map.put("coin_id", job.get("coin_id"));
+						map.put("code", job.get("code"));
+						returnMap.add(map);
+//						if(coinId.equals(job.getInteger("coin_id"))){
+//							volume1=job.getDoubleValue("volume");
+//						}
+//						System.out.println(object);
+					}
+				}
+			}).start();
+			return returnMap;
+		}
+	
+	
 	//买入
 		public String orderBuy(String symbolId,String price,String volume){
 			JSONObject object = new JSONObject();
@@ -136,12 +164,13 @@ public class CoinController {
 //			object.put("symbol_id", symbolId);	
 //			object.put("price", price);
 //			object.put("volume", volume);
-			String volume = null;//订单编号
+			double volume1 = 0;//订单编号
 			String token = redisUtil.get("token");
 			HttpParams.setToken(token);
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
+					
 					String marketReal = HttpUtils.sendPost(access_key, secret_key, HostConstant.MAIN_HOST, HostConstant.GET_USER_COIN);
 //					JSONObject marketJson = JSONObject.parseObject(marketReal);
 //					String price = marketJson.getString("close_price");
@@ -152,7 +181,7 @@ public class CoinController {
 						for(int i=0;i<jsonArray.size();i++){
 							JSONObject job = jsonArray.getJSONObject(i);
 							if(coinId.equals(job.getInteger("coin_id"))){
-//								return  job.getDouble("1");
+//								volume1=job.getDoubleValue("volume");
 							}
 //							System.out.println(object);
 						}
@@ -162,8 +191,8 @@ public class CoinController {
 					}
 				}
 			}).start();
-			System.out.println(volume);
-			return Double.valueOf(volume);
+			System.out.println(volume1);
+			return Double.valueOf(volume1);
 		}
 		
 //		public static void main(String []args){
