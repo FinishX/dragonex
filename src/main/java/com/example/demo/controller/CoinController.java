@@ -24,6 +24,7 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.demo.openApi.HostConstant;
 import com.example.demo.openApi.HttpParams;
@@ -54,6 +55,8 @@ public class CoinController {
 		if(differenceRatio<0.9){//如果当前价格小于输入价格的10%则以当前价格买入volume数量
 			String orderId = orderBuy(symbolId, String.valueOf(price), volume);
 			System.out.println(orderId);
+			double ownVolume = userOwn("119");
+			System.out.println(ownVolume);
 		}
 		
 //		JSONObject object = new JSONObject();
@@ -123,6 +126,44 @@ public class CoinController {
 			}).start();
 			System.out.println(orderId);
 			return orderId;
+		}
+		
+		
+		public double userOwn(String coinId){
+//			JSONObject object = new JSONObject();
+			String access_key = "853383797d695e67bfcd768e0706e323";
+			String secret_key = "c104adfc7e1b5e5e99c7c307ad65524e";
+//			object.put("symbol_id", symbolId);	
+//			object.put("price", price);
+//			object.put("volume", volume);
+			String volume = null;//订单编号
+			String token = redisUtil.get("token");
+			HttpParams.setToken(token);
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					String marketReal = HttpUtils.sendPost(access_key, secret_key, HostConstant.MAIN_HOST, HostConstant.GET_USER_COIN);
+//					JSONObject marketJson = JSONObject.parseObject(marketReal);
+//					String price = marketJson.getString("close_price");
+					JSONObject marketJson = JSONObject.parseObject(marketReal);
+					if(marketJson.getString("code").equals("1")){
+						String dataJson = marketJson.getString("data");
+						JSONArray jsonArray = JSONArray.parseArray(dataJson);
+						for(int i=0;i<jsonArray.size();i++){
+							JSONObject job = jsonArray.getJSONObject(i);
+							if(coinId.equals(job.getInteger("coin_id"))){
+//								return  job.getDouble("1");
+							}
+//							System.out.println(object);
+						}
+//						String orderId = jsons.getString("order_id");
+//						System.out.println(orderId);
+//						orderId=orderId;
+					}
+				}
+			}).start();
+			System.out.println(volume);
+			return Double.valueOf(volume);
 		}
 		
 //		public static void main(String []args){
