@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Insert title here</title>
+<script  src="http://libs.baidu.com/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript">
+$.ajax({
+    url:"/coin/coinAll",    //请求的url地址
+    dataType:"json",   //返回格式为json
+    async:true,//请求是否异步，默认为异步，这也是ajax重要特性
+//     data:{"id":"value"},    //参数值
+    type:"GET",   //请求方式
+//     beforeSend:function(){
+//         //请求前的处理
+//     },
+    success:function(obj){
+//     	console.info(json);
+var ss = '<tr><th>名称</th><th>id</th></tr>';
+    	obj.forEach(function(value, key, json){
+    		ss=ss+ '<tr><td>'+value.code+'</td><td><a href="javascript:void(0);" onClick="clickInput('+value.coin_id+')">'+value.coin_id+'</a></td></tr>';
+    	})
+    	$(".name").append(ss);
+        //请求成功时处理
+    }
+});
+
+$.ajax({
+    url:"/coin/userOwn",    //请求的url地址
+    dataType:"json",   //返回格式为json
+    async:true,//请求是否异步，默认为异步，这也是ajax重要特性
+//     data:{"id":"value"},    //参数值
+    type:"GET",   //请求方式
+//     beforeSend:function(){
+//         //请求前的处理
+//     },
+    success:function(obj){
+//     	console.info(json);
+var ss = '<tr><th>名称</th><th>总量</th><th>被冻结</th></tr>';
+    	obj.forEach(function(value, key, json){
+    		ss=ss+ '<tr><td>'+value.code+'</td><td>'+value.volume+'</td><td>'+value.frozen+'</td></tr>';
+    	})
+    	$(".owncoin").append(ss);
+        //请求成功时处理
+    }
+});
+
+//循环执行，每隔3秒钟执行一次showalert（） 
+window.setInterval(showprice, 10000); 
+function showprice() 
+{ 
+	var coin_id = $("#symbolId").val();
+	/*<![CDATA[*/
+	if(coin_id!=null && coin_id!=''){
+		$.ajax({
+		    url:"/coin/closePrice",    //请求的url地址
+		    dataType:"json",   //返回格式为json
+		    async:true,//请求是否异步，默认为异步，这也是ajax重要特性
+		     data:{"symbolId":coin_id},    //参数值
+		    type:"GET",   //请求方式
+//		     beforeSend:function(){
+//		         //请求前的处理
+//		     },
+		    success:function(obj){
+		    	$("#closeprice").val(obj);
+	// //	     	console.info(json);
+//	 	var ss = '<tr><th>名称</th><th>id</th></tr>';
+//	 	    	obj.forEach(function(value, key, json){
+//	 	    		ss=ss+ '<tr><td>'+value.code+'</td><td><a href="javascript:void(0);" onClick="clickInput('+value.coin_id+')">'+value.coin_id+'</a></td></tr>';
+//	 	    	})
+//	 	    	$(".name").append(ss);
+//	 	        //请求成功时处理
+		    }
+		});
+	}
+	/*]]>*/
+	
+} 
+
+
+
+function clickInput(coinId){
+	$("#symbolId").val(coinId);
+}
+</script>
+</head>
+<body>
+<div>
+ <tr><td>
+ 	<div ><table class="name" border="1"></table></div>
+ </td>
+ <td>
+ 	<div ><table class="owncoin" border="1"></table></div>
+ </td>
+ <td>
+ 	<form action="/coin/price">
+	币种id:<input id="symbolId" name="symbolId" value=""/>
+	当前买入价格(参考):<input id="closeprice" name="closeprice" value="" disabled="disabled"/>
+	买入价格:<input id="price" name="price" value=""/>
+	买入数量:<input id="volume" name="volume" value=""/>
+	<input type="submit" value="Submit" />
+</form>
+ </td></tr>
+</div>
+
+
+</body>
+</html>

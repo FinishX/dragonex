@@ -1,6 +1,10 @@
 package com.example.demo.openApi;
 
+import org.junit.Test;
+
 import com.alibaba.fastjson.JSONObject;
+
+import redis.clients.jedis.Jedis;
 
 public class Main {
 	public static void main(String[] args) {
@@ -38,4 +42,13 @@ public class Main {
 		}).start();
 
 	}
+	
+	
+	@Test
+    public void testTwo() {
+        Jedis jedis = new Jedis("119.23.231.141");
+        System.out.println("Connection to server sucessfully");
+        // 查看服务是否运行
+        System.out.println("Server is running: " + jedis.ping());
+    }
 }

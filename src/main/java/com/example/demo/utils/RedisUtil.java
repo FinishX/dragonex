@@ -9,11 +9,14 @@
 package com.example.demo.utils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -116,6 +119,49 @@ public class RedisUtil {
 		return result;
 	}
 
+	/**
+	 * 
+	* @Title: setList  
+	* @Description: TODO(这里用一句话描述这个方法的作用)  
+	* @param @param string
+	* @param @param list
+	* @param @return    参数  
+	* @return boolean    返回类型  
+	* @throws
+	 */
+	public boolean setList(final String string, List list) {
+		boolean result = false;
+		try {
+			ListOperations operations = redisTemplate.opsForList();
+			operations.leftPushAll(string, list);
+			result = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	* @Title: getList  
+	* @Description: TODO(这里用一句话描述这个方法的作用)  
+	* @param @param string
+	* @param @return    参数  
+	* @return boolean    返回类型  
+	* @throws
+	 */
+	public List<String> getList(final String string) {
+		List<String> result = null;
+		try {
+			ListOperations operations = redisTemplate.opsForList();
+			result = (List<String>) operations.range(string, 0, -1);
+//			result = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
 	/**
 	 * 写入缓存
 	 * 
